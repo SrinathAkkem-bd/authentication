@@ -1,14 +1,7 @@
 import Cookies from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
-
-interface DecodedToken {
-  exp: number;
-  sub: string;
-  sessionId: string;
-}
 
 const SESSION_KEY = 'session_active';
-const SESSION_CHECK_INTERVAL = 15 * 60 * 1000; // 15 minutes
+const SESSION_CHECK_INTERVAL = 60 * 60 * 1000; // 1 hour
 
 export const auth = {
   getSession: (): boolean => {
@@ -32,19 +25,20 @@ export const auth = {
     Cookies.remove(SESSION_KEY);
   },
 
-  startSessionCheck: (onExpired: () => void): () => void => {
-    const checkSession = async () => {
-      try {
-        await apiService.getUserInfo();
-      } catch (error) {
-        onExpired();
-      }
+  startSessionCheck: (checkFn: () => Promise<void>): () => void => {
+    let timeoutId: NodeJS.Timeout;
+
+    const scheduleNextCheck = () => {
+      timeoutId = setTimeout(async () => {
+        await checkFn();
+        scheduleNextCheck();
+      }, SESSION_CHECK_INTERVAL);
     };
 
-    // Initial check
-    checkSession();
-    
-    const intervalId = setInterval(checkSession, SESSION_CHECK_INTERVAL);
-    return () => clearInterval(intervalId);
+    // Start the check cycle
+    scheduleNextCheck();
+
+    // Return cleanup function
+    return () => clearTimeout(timeoutId);
   }
 };
