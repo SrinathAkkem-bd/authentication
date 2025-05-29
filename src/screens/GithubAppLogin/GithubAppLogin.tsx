@@ -1,6 +1,6 @@
 import { GithubIcon } from "lucide-react";
 import React, { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../hooks/useAuth";
@@ -9,20 +9,18 @@ import "./GithubAppLogin.css";
 export const GithubAppLogin = (): JSX.Element => {
   const { handleGithubLogin, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      navigate("/dashboard");
-    }
+    const checkAuth = async () => {
+      if (!isLoading) {
+        if (isAuthenticated) {
+          navigate("/dashboard");
+        }
+      }
+    };
 
-    // Handle the callback from GitHub OAuth
-    const code = searchParams.get("code");
-    if (code) {
-      // The backend will handle this code and set the session
-      navigate("/dashboard");
-    }
-  }, [isAuthenticated, isLoading, navigate, searchParams]);
+    checkAuth();
+  }, [isAuthenticated, isLoading, navigate]);
 
   return (
     <main className="login-container" id="login-page">
