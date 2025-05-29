@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-
-const API_BASE_URL = "https://api.example.com"; // Replace with your actual API URL
+import { API_BASE_URL } from "../config/constants.ts";
 
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
