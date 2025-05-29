@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../context/AuthContext";
+import { LoadingSpinner } from "../../components/common/LoadingSpinner/LoadingSpinner";
+import { ROUTES } from "../../config/constants";
 import "./AuthCallback.css";
 
 export const AuthCallback = () => {
@@ -11,14 +13,10 @@ export const AuthCallback = () => {
     const handleCallback = async () => {
       try {
         const isValid = await checkSession();
-        if (isValid) {
-          navigate("/dashboard");
-        } else {
-          navigate("/login");
-        }
+        navigate(isValid ? ROUTES.DASHBOARD : ROUTES.LOGIN);
       } catch (error) {
         console.error("Auth callback error:", error);
-        navigate("/login");
+        navigate(ROUTES.LOGIN);
       }
     };
 
@@ -27,7 +25,7 @@ export const AuthCallback = () => {
 
   return (
     <div className="callback-container" id="auth-callback">
-      <div className="loading-spinner" id="loading-spinner"></div>
+      <LoadingSpinner size="large" />
       <p>Authenticating...</p>
     </div>
   );
