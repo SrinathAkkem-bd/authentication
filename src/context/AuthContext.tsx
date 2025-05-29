@@ -20,6 +20,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
 
   const checkSession = useCallback(async () => {
+    if (!auth.getSession()) {
+      setIsAuthenticated(false);
+      setIsLoading(false);
+      return false;
+    }
+
     try {
       const response = await apiService.getUserInfo();
       const isValid = response.status === 200;
@@ -50,19 +56,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [navigate]);
 
   useEffect(() => {
-    // Initial session check
-    checkSession();
+    // Initial session check only if we have a session
+    if (auth.getSession()) {
+      checkSession();
+    } else {
+      setIsLoading(false);
+    }
 
     // Set up periodic session check
     const cleanup = auth.startSessionCheck(async () => {
       const isValid = await checkSession();
-      if (!isValid) {
+      if (!isValid && isAuthenticated) {
         logout();
       }
     });
 
     return cleanup;
-  }, [checkSession, logout]);
+  }, [checkSession, logout, isAuthenticated]);
 
   return (
     <AuthContext.Provider value={{
