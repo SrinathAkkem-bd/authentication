@@ -1,56 +1,37 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { API_BASE_URL } from "../config/constants.ts";
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../store';
+import { checkAuth, githubLogin, logout } from '../store/slices/authSlice';
+import { API_BASE_URL, API_ENDPOINTS, ROUTES } from '../config/constants';
 
 export const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoading, error } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   useEffect(() => {
-    checkSession();
-  }, []);
-
-  const checkSession = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/user_info`, {
-        withCredentials: true
-      });
-      
-      if (response.status === 200) {
-        setIsAuthenticated(true);
-        return true;
-      } else {
-        setIsAuthenticated(false);
-        return false;
-      }
-    } catch (error) {
-      setIsAuthenticated(false);
-      return false;
-    } finally {
-      setIsLoading(false);
+    if (!isAuthenticated && !isLoading) {
+      dispatch(checkAuth());
     }
-  };
+  }, [dispatch, isAuthenticated, isLoading]);
 
   const handleGithubLogin = () => {
-    window.location.href = `${API_BASE_URL}/auth/github`;
+    window.location.href = `${API_BASE_URL}${API_ENDPOINTS.GITHUB_AUTH}`;
   };
 
-  const logout = async () => {
-    try {
-      await axios.post(`${API_BASE_URL}/auth/logout`, {}, {
-        withCredentials: true
-      });
-    } finally {
-      setIsAuthenticated(false);
-      window.location.href = "/login";
-    }
+  const handleLogout = async () => {
+    await dispatch(logout());
+    navigate(ROUTES.HOME);
   };
 
   return {
     isAuthenticated,
     isLoading,
+    error,
     handleGithubLogin,
-    logout,
-    checkSession
+    logout: handleLogout,
   };
 };
