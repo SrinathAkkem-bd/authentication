@@ -8,7 +8,7 @@ interface DecodedToken {
 }
 
 const SESSION_KEY = 'auth_session';
-const SESSION_CHECK_INTERVAL = 60000; // 1 minute
+const SESSION_CHECK_INTERVAL = 15 * 60 * 1000; // 15 minutes
 
 export const auth = {
   getSession: (): string | undefined => {
@@ -39,8 +39,8 @@ export const auth = {
     try {
       const decoded = jwtDecode<DecodedToken>(token);
       const currentTime = Math.floor(Date.now() / 1000);
-      // Add 5 minute buffer for token refresh
-      return decoded.exp - 300 < currentTime;
+      // Add 15 minute buffer for token refresh
+      return decoded.exp - 900 < currentTime;
     } catch {
       return true;
     }
@@ -56,13 +56,17 @@ export const auth = {
   },
 
   startSessionCheck: (onExpired: () => void): () => void => {
-    const intervalId = setInterval(() => {
+    const checkSession = () => {
       const session = auth.getSession();
       if (!session || auth.isTokenExpired(session)) {
         onExpired();
       }
-    }, SESSION_CHECK_INTERVAL);
+    };
 
+    // Initial check
+    checkSession();
+    
+    const intervalId = setInterval(checkSession, SESSION_CHECK_INTERVAL);
     return () => clearInterval(intervalId);
   }
 };
