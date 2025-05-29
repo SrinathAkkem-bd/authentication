@@ -11,6 +11,8 @@ const api = axios.create({
   }
 });
 
+let isRedirecting = false;
+
 // Request interceptor
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -28,7 +30,8 @@ api.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isRedirecting) {
+      isRedirecting = true;
       auth.clearSession();
       window.location.href = '/';
     }
