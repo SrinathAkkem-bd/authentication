@@ -8,6 +8,7 @@ interface DecodedToken {
 }
 
 const SESSION_KEY = 'auth_session';
+const SESSION_CHECK_INTERVAL = 60000; // 1 minute
 
 export const auth = {
   getSession: (): string | undefined => {
@@ -15,11 +16,19 @@ export const auth = {
   },
 
   setSession: (token: string): void => {
-    Cookies.set(SESSION_KEY, token, {
-      secure: true,
-      sameSite: 'strict',
-      expires: 7
-    });
+    try {
+      const decoded = jwtDecode<DecodedToken>(token);
+      const expiresIn = new Date(decoded.exp * 1000);
+      
+      Cookies.set(SESSION_KEY, token, {
+        expires: expiresIn,
+        secure: true,
+        sameSite: 'strict'
+      });
+    } catch (error) {
+      console.error('Failed to set session:', error);
+      auth.clearSession();
+    }
   },
 
   clearSession: (): void => {
@@ -30,7 +39,8 @@ export const auth = {
     try {
       const decoded = jwtDecode<DecodedToken>(token);
       const currentTime = Math.floor(Date.now() / 1000);
-      return decoded.exp < currentTime;
+      // Add 5 minute buffer for token refresh
+      return decoded.exp - 300 < currentTime;
     } catch {
       return true;
     }
@@ -43,5 +53,16 @@ export const auth = {
     } catch {
       return null;
     }
+  },
+
+  startSessionCheck: (onExpired: () => void): () => void => {
+    const intervalId = setInterval(() => {
+      const session = auth.getSession();
+      if (!session || auth.isTokenExpired(session)) {
+        onExpired();
+      }
+    }, SESSION_CHECK_INTERVAL);
+
+    return () => clearInterval(intervalId);
   }
 };
