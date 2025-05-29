@@ -7,23 +7,20 @@ interface DecodedToken {
   sessionId: string;
 }
 
-const SESSION_KEY = 'auth_session';
+const SESSION_KEY = 'session_active';
 const SESSION_CHECK_INTERVAL = 15 * 60 * 1000; // 15 minutes
 
 export const auth = {
-  getSession: (): string | undefined => {
-    return Cookies.get(SESSION_KEY);
+  getSession: (): boolean => {
+    return Cookies.get(SESSION_KEY) === 'true';
   },
 
-  setSession: (token: string): void => {
+  setSession: (): void => {
     try {
-      const decoded = jwtDecode<DecodedToken>(token);
-      const expiresIn = new Date(decoded.exp * 1000);
-      
-      Cookies.set(SESSION_KEY, token, {
-        expires: expiresIn,
+      Cookies.set(SESSION_KEY, 'true', {
         secure: true,
-        sameSite: 'strict'
+        sameSite: 'lax',
+        expires: 1 // 1 day
       });
     } catch (error) {
       console.error('Failed to set session:', error);
@@ -35,30 +32,11 @@ export const auth = {
     Cookies.remove(SESSION_KEY);
   },
 
-  isTokenExpired: (token: string): boolean => {
-    try {
-      const decoded = jwtDecode<DecodedToken>(token);
-      const currentTime = Math.floor(Date.now() / 1000);
-      // Add 15 minute buffer for token refresh
-      return decoded.exp - 900 < currentTime;
-    } catch {
-      return true;
-    }
-  },
-
-  getSessionId: (token: string): string | null => {
-    try {
-      const decoded = jwtDecode<DecodedToken>(token);
-      return decoded.sessionId;
-    } catch {
-      return null;
-    }
-  },
-
   startSessionCheck: (onExpired: () => void): () => void => {
-    const checkSession = () => {
-      const session = auth.getSession();
-      if (!session || auth.isTokenExpired(session)) {
+    const checkSession = async () => {
+      try {
+        await apiService.getUserInfo();
+      } catch (error) {
         onExpired();
       }
     };
