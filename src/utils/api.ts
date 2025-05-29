@@ -27,27 +27,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-    
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      
-      try {
-        const session = auth.getSession();
-        if (session && auth.shouldRefreshToken(session)) {
-          const response = await api.post(API_ENDPOINTS.REFRESH_TOKEN);
-          const newToken = response.data.token;
-          auth.setSession(newToken);
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return api(originalRequest);
-        }
-      } catch {
-        auth.clearSession();
-        window.location.href = '/login';
-        return Promise.reject(error);
-      }
+    if (error.response?.status === 401) {
+      auth.clearSession();
+      window.location.href = '/';
     }
-    
     return Promise.reject(error);
   }
 );
@@ -61,8 +44,7 @@ export const apiService = {
       await api.post(API_ENDPOINTS.LOGOUT, { sessionId });
       auth.clearSession();
     }
-  },
-  refreshToken: () => api.post(API_ENDPOINTS.REFRESH_TOKEN),
+  }
 };
 
 export default api;
