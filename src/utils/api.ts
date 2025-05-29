@@ -38,10 +38,12 @@ api.interceptors.response.use(
 export const apiService = {
   getUserInfo: () => api.get(API_ENDPOINTS.USER_INFO),
   logout: async () => {
-    const session = auth.getSession();
-    if (session) {
-      const sessionId = auth.getSessionId(session);
-      await api.post(API_ENDPOINTS.LOGOUT, { sessionId });
+    try {
+      const session = auth.getSession();
+      if (session) {
+        await api.post(API_ENDPOINTS.LOGOUT);
+      }
+    } finally {
       auth.clearSession();
     }
   }

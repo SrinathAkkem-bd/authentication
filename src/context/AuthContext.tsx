@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiService } from "../utils/api";
 import { auth } from "../utils/auth";
-import { useNavigate } from "react-router-dom";
-import {API_BASE_URL, API_ENDPOINTS, ROUTES} from "../config/constants";
+import { API_BASE_URL, API_ENDPOINTS, ROUTES } from "../config/constants";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -59,17 +59,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     checkSession();
 
-    const sessionCheckInterval = setInterval(() => {
-      const session = auth.getSession();
-      if (session && auth.shouldRefreshToken(session)) {
-        apiService.refreshToken()
-          .catch(() => {
-            logout();
-          });
-      }
-    }, 60000); // Check every minute
+    const cleanup = auth.startSessionCheck(() => {
+      logout();
+    });
 
-    return () => clearInterval(sessionCheckInterval);
+    return () => {
+      cleanup();
+    };
   }, [checkSession, logout]);
 
   return (
@@ -83,4 +79,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuthContext = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuthContext must be used within an AuthProvider");
+  }
+  return context;
 };
