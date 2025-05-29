@@ -14,16 +14,19 @@ export const useAuth = () => {
   const checkSession = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/user_info`, {
-        withCredentials: true // Important for sending cookies
+        withCredentials: true
       });
       
       if (response.status === 200) {
         setIsAuthenticated(true);
+        return true;
       } else {
         setIsAuthenticated(false);
+        return false;
       }
     } catch (error) {
       setIsAuthenticated(false);
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -48,6 +51,7 @@ export const useAuth = () => {
     isAuthenticated,
     isLoading,
     handleGithubLogin,
-    logout
+    logout,
+    checkSession
   };
 };
