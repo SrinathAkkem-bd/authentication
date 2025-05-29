@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { apiService } from "../utils/api";
 import { auth } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
-import { ROUTES } from "../config/constants";
+import {API_BASE_URL, API_ENDPOINTS, ROUTES} from "../config/constants";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -25,10 +25,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!session || auth.isTokenExpired(session)) {
         setIsAuthenticated(false);
         return false;
-      }
-
-      if (auth.shouldRefreshToken(session)) {
-        await apiService.refreshToken();
       }
 
       const response = await apiService.getUserInfo();
@@ -56,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       auth.clearSession();
       setIsAuthenticated(false);
-      navigate(ROUTES.LOGIN);
+      navigate(ROUTES.HOME);
     }
   }, [navigate]);
 
@@ -87,12 +83,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
 };

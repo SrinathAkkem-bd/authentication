@@ -10,7 +10,7 @@ interface DecodedToken {
 const SESSION_KEY = 'auth_session';
 
 export const auth = {
-  getSession: (): string | null => {
+  getSession: (): string | undefined => {
     return Cookies.get(SESSION_KEY);
   },
 
@@ -18,7 +18,7 @@ export const auth = {
     Cookies.set(SESSION_KEY, token, {
       secure: true,
       sameSite: 'strict',
-      expires: 7 // 7 days
+      expires: 7
     });
   },
 
