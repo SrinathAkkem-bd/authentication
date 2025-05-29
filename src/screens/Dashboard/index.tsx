@@ -1,6 +1,6 @@
-import React from "react";
-import { useAuth } from "../../hooks/useAuth";
-import "./Dashboard.css";
+import React from 'react';
+import { useAuth } from '../../hooks/useAuth';
+import './Dashboard.css';
 
 export const Dashboard = () => {
   const { logout } = useAuth();

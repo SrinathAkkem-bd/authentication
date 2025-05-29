@@ -1,27 +1,38 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { LoadingSpinner } from "../../components/common/LoadingSpinner/LoadingSpinner";
-import { ROUTES } from "../../config/constants";
-import "./AuthCallback.css";
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../store';
+import { githubLogin } from '../../store/slices/authSlice';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner/LoadingSpinner';
+import { ROUTES } from '../../config/constants';
+import './AuthCallback.css';
 
 export const AuthCallback = () => {
-  const { checkSession } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const { isAuthenticated, error } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        const isValid = await checkSession();
-        navigate(isValid ? ROUTES.DASHBOARD : ROUTES.LOGIN);
+        await dispatch(githubLogin()).unwrap();
+        navigate(ROUTES.DASHBOARD);
       } catch (error) {
-        console.error("Auth callback error:", error);
-        navigate(ROUTES.LOGIN);
+        console.error('Auth callback error:', error);
+        navigate(ROUTES.HOME);
       }
     };
 
     handleCallback();
-  }, [checkSession, navigate]);
+  }, [dispatch, navigate]);
+
+  if (error) {
+    return (
+      <div className="callback-container">
+        <p>Authentication failed. Redirecting...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="callback-container" id="auth-callback">

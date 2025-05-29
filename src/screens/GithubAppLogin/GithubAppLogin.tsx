@@ -1,25 +1,23 @@
-import { GithubIcon } from "lucide-react";
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "../../components/ui/button";
-import { Card, CardContent } from "../../components/ui/card";
-import { useAuth } from "../../hooks/useAuth";
-import "./GithubAppLogin.css";
+import { GithubIcon } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent } from '../../components/ui/card';
+import { useAuth } from '../../hooks/useAuth';
+import { RootState } from '../../store';
+import { ROUTES } from '../../config/constants';
+import './GithubAppLogin.css';
 
 export const GithubAppLogin = (): JSX.Element => {
-  const { handleGithubLogin, isAuthenticated, isLoading } = useAuth();
+  const { handleGithubLogin } = useAuth();
+  const { isAuthenticated, isLoading } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      if (!isLoading) {
-        if (isAuthenticated) {
-          navigate("/dashboard");
-        }
-      }
-    };
-
-    checkAuth();
+    if (isAuthenticated && !isLoading) {
+      navigate(ROUTES.DASHBOARD);
+    }
   }, [isAuthenticated, isLoading, navigate]);
 
   return (
@@ -56,9 +54,9 @@ export const GithubAppLogin = (): JSX.Element => {
       <div className="terms-container" id="terms">
         <p className="terms-text">
           By clicking continue, you agree to our{" "}
-          <a href="/terms" className="terms-link">Terms of Service</a>
+          <a href={ROUTES.TERMS} className="terms-link">Terms of Service</a>
           {" "}and{" "}
-          <a href="/privacy" className="terms-link">Privacy Policy</a>
+          <a href={ROUTES.PRIVACY} className="terms-link">Privacy Policy</a>
         </p>
       </div>
     </main>
