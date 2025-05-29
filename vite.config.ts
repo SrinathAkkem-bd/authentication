@@ -2,7 +2,6 @@ import react from "@vitejs/plugin-react";
 import tailwind from "tailwindcss";
 import { defineConfig } from "vite";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   base: "/",
@@ -12,7 +11,7 @@ export default defineConfig({
     },
   },
   server: {
-    host: '0.0.0.0',
+    host: true, // Change this to enable network access
     port: 3000,
     strictPort: true,
     headers: {
