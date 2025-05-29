@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Cookies from "js-cookie";
 import axios from "axios";
 
 const API_BASE_URL = "https://api.example.com"; // Replace with your actual API URL
@@ -13,31 +12,36 @@ export const useAuth = () => {
   }, []);
 
   const checkSession = async () => {
-    const sessionToken = Cookies.get("session_token");
-    if (sessionToken) {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/user_info`, {
-          headers: { Authorization: `Bearer ${sessionToken}` }
-        });
+    try {
+      const response = await axios.get(`${API_BASE_URL}/user_info`, {
+        withCredentials: true // Important for sending cookies
+      });
+      
+      if (response.status === 200) {
         setIsAuthenticated(true);
-      } catch (error) {
-        Cookies.remove("session_token");
+      } else {
         setIsAuthenticated(false);
       }
-    } else {
+    } catch (error) {
       setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleGithubLogin = () => {
     window.location.href = `${API_BASE_URL}/auth/github`;
   };
 
-  const logout = () => {
-    Cookies.remove("session_token");
-    setIsAuthenticated(false);
-    window.location.href = "/login";
+  const logout = async () => {
+    try {
+      await axios.post(`${API_BASE_URL}/auth/logout`, {}, {
+        withCredentials: true
+      });
+    } finally {
+      setIsAuthenticated(false);
+      window.location.href = "/login";
+    }
   };
 
   return {
