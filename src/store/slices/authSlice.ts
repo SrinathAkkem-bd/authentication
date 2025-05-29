@@ -9,30 +9,21 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  isAuthenticated: !!auth.getSession(),
+  isAuthenticated: false,
   isLoading: false,
   error: null,
 };
-
-export const checkAuth = createAsyncThunk(
-  'auth/checkAuth',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await apiService.getUserInfo();
-      return response.data;
-    } catch (error) {
-      auth.clearSession();
-      return rejectWithValue('Authentication failed');
-    }
-  }
-);
 
 export const githubLogin = createAsyncThunk(
   'auth/githubLogin',
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiService.getUserInfo();
-      return response.data;
+      if (response.status === 200) {
+        auth.setSession();
+        return response.data;
+      }
+      return rejectWithValue('Authentication failed');
     } catch (error) {
       return rejectWithValue('GitHub login failed');
     }
@@ -41,14 +32,8 @@ export const githubLogin = createAsyncThunk(
 
 export const logout = createAsyncThunk(
   'auth/logout',
-  async (_, { rejectWithValue }) => {
-    try {
-      await apiService.logout();
-      auth.clearSession();
-      return;
-    } catch (error) {
-      return rejectWithValue('Logout failed');
-    }
+  async () => {
+    auth.clearSession();
   }
 );
 
@@ -58,19 +43,6 @@ const authSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(checkAuth.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(checkAuth.fulfilled, (state) => {
-        state.isAuthenticated = true;
-        state.isLoading = false;
-      })
-      .addCase(checkAuth.rejected, (state, action) => {
-        state.isAuthenticated = false;
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
       .addCase(githubLogin.pending, (state) => {
         state.isLoading = true;
         state.error = null;
