@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { GithubAppLogin } from '../screens/GithubAppLogin';
 import { Dashboard } from '../screens/Dashboard';
 import { AuthCallback } from '../screens/AuthCallback';
