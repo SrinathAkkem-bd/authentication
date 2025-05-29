@@ -11,13 +11,11 @@ export const ROUTES = {
 export const API_ENDPOINTS = {
   USER_INFO: "/user_info",
   GITHUB_AUTH: "/auth/github",
-  LOGOUT: "/auth/logout",
-  REFRESH_TOKEN: "/auth/refresh"
+  LOGOUT: "/auth/logout"
 } as const;
 
 export const AUTH_CONFIG = {
   SESSION_DURATION: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
-  REFRESH_THRESHOLD: 5 * 60 * 1000, // 5 minutes in milliseconds
   MAX_RETRY_ATTEMPTS: 3,
   REQUEST_TIMEOUT: 10000 // 10 seconds
 } as const;

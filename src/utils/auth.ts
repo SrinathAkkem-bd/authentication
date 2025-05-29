@@ -8,7 +8,6 @@ interface DecodedToken {
 }
 
 const SESSION_KEY = 'auth_session';
-const REFRESH_THRESHOLD = 5 * 60; // 5 minutes in seconds
 
 export const auth = {
   getSession: (): string | null => {
@@ -34,16 +33,6 @@ export const auth = {
       return decoded.exp < currentTime;
     } catch {
       return true;
-    }
-  },
-
-  shouldRefreshToken: (token: string): boolean => {
-    try {
-      const decoded = jwtDecode<DecodedToken>(token);
-      const currentTime = Math.floor(Date.now() / 1000);
-      return decoded.exp - currentTime < REFRESH_THRESHOLD;
-    } catch {
-      return false;
     }
   },
 
