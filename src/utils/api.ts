@@ -14,10 +14,6 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const session = auth.getSession();
-    if (session) {
-      config.headers.Authorization = `Bearer ${session}`;
-    }
     return config;
   },
   (error: AxiosError) => Promise.reject(error)
@@ -25,7 +21,12 @@ api.interceptors.request.use(
 
 // Response interceptor
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.config.url?.includes(API_ENDPOINTS.USER_INFO)) {
+      auth.setSession();
+    }
+    return response;
+  },
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
       auth.clearSession();
@@ -39,10 +40,7 @@ export const apiService = {
   getUserInfo: () => api.get(API_ENDPOINTS.USER_INFO),
   logout: async () => {
     try {
-      const session = auth.getSession();
-      if (session) {
-        await api.post(API_ENDPOINTS.LOGOUT);
-      }
+      await api.post(API_ENDPOINTS.LOGOUT);
     } finally {
       auth.clearSession();
     }

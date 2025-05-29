@@ -15,18 +15,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(auth.getSession());
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   const checkSession = useCallback(async () => {
     try {
-      const session = auth.getSession();
-      if (!session || auth.isTokenExpired(session)) {
-        setIsAuthenticated(false);
-        return false;
-      }
-
       const response = await apiService.getUserInfo();
       const isValid = response.status === 200;
       setIsAuthenticated(isValid);
@@ -50,7 +44,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
-      auth.clearSession();
       setIsAuthenticated(false);
       navigate(ROUTES.HOME);
     }
