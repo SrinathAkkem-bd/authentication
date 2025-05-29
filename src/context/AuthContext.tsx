@@ -50,15 +50,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [navigate]);
 
   useEffect(() => {
+    // Initial session check
     checkSession();
 
-    const cleanup = auth.startSessionCheck(() => {
-      logout();
+    // Set up periodic session check
+    const cleanup = auth.startSessionCheck(async () => {
+      const isValid = await checkSession();
+      if (!isValid) {
+        logout();
+      }
     });
 
-    return () => {
-      cleanup();
-    };
+    return cleanup;
   }, [checkSession, logout]);
 
   return (
