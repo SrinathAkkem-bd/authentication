@@ -1,7 +1,6 @@
 export const API_BASE_URL = "https://api.example.com";
 
 export const ROUTES = {
-  LOGIN: "/login",
   DASHBOARD: "/dashboard",
   AUTH_CALLBACK: "/auth/callback",
   HOME: "/",
